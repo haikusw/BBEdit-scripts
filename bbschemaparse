@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+
+# bbschemaparse 1.0 - 2012 July 19
+# (c) Copyright 2012 height8, www.height8.com
+# Takes compact mysqldump, separates each table then displays them in BBEdit individually
+
+# Expects STDIN in this form:
+# mysqldump -u root -p -h 127.0.0.1 --no-data --compact --databases $@  | bbschemaparse
+# or:	bbschemaparse < mycompactdump.sql
+
+use strict;
+
+my $accumulate = 0;
+my $output = "";
+my $tablename = "";
+my $dbname = "";
+
+while (my $inputline = <STDIN>) {
+	if ($inputline =~ /^USE `/)
+	{
+		($dbname) = $inputline =~ /\`(\w+)\`/;
+	}
+	elsif ($inputline =~ /^CREATE TABLE/) {
+		$accumulate = 1;
+		($tablename) = $inputline =~ /\`(\w+)\`/;
+	}
+	elsif ($inputline =~ /^\) ENGINE=/) {
+		$accumulate = 0;
+		$output = $output . $inputline;
+		makeout();
+	}
+	if ($accumulate) {
+		$output = $output . $inputline;
+	}
+}
+makeout();
+exit;
+
+sub makeout()
+{
+	if (length($output)>0)
+	{
+		open(BBEDIT, "| bbedit --clean --view-top -t \"schema $dbname.$tablename\" --") || die "bbedit failed: $!\n";
+		print BBEDIT "USE \`$dbname\`;\n\n$output\n";
+		close(BBEDIT);
+		$output = "";
+		$tablename = "";
+	}
+}

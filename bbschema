@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# bbschema 1.0 - 2012 July 19
+# (c) Copyright 2012 height8, www.height8.com
+# Acts as front-end to bbschemaparse
+# Takes one or more parameters as database names, performs mysqldump compact on them, and sends the output to bbschemaparse
+
+[ $# -eq 0 ] && {
+	echo "Error, please supply one or more database names"
+	echo "Usage: bbschema databasename [databasename] [databasename] ..."
+	exit 1
+}
+
+# Thank you http://stackoverflow.com/a/4785518 for this next line:
+command -v bbschemaparse >/dev/null 2>&1 || { echo "Can't find bbschemaparse in the PATH, can't continue." >&2; exit 1; }
+
+mysqldump -u root -p -h 127.0.0.1 --no-data --compact --databases $@  | bbschemaparse

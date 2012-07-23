@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# bbman 1.1 - 2012 June 15
+# (c) Copyright 2012 height8, www.height8.com
+# Displays man pages in BBEdit
+
+[ $# -eq 0 ] && {
+	echo "Usage: bbman [section] name"
+	echo "Display a man page (optionally from a specific section) in BBEdit"
+	exit 1
+}
+
+[ $# -eq 2 ] && {
+	man $1 $2 | col -b | bbedit --clean --view-top -t "man $1 $2"
+	exit 0
+}
+man $1 | col -b | bbedit --clean --view-top -t "man $1"
